@@ -1,30 +1,47 @@
 import './App.css';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useReducer } from 'react';
 
 function App() {
+  const reducer = (state, action) => {
+    switch (action.type) {
+      case 'WALLET_INCREMENT':
+        return { walletValue: state.walletValue + 0.25, coinBoxValue: state.coinBoxValue };
+      case 'WALLET_DECREMENT':
+        return { walletValue: state.walletValue - 0.25, coinBoxValue: state.coinBoxValue };
+      case 'COIN_BOX_INCREMENT':
+        return { walletValue: state.walletValue, coinBoxValue: state.coinBoxValue + 0.25 };
+      case 'COIN_BOX_DECREMENT':
+        return { walletValue: state.walletValue, coinBoxValue: state.coinBoxValue - 0.25 };
+      case 'COIN_BOX_EMPTY':
+        return { walletValue: state.walletValue + state.coinBoxValue, coinBoxValue: 0.00 };
+      default:
+        return state;
+    }
+  };
+  
   const [gumballCount, setGumballCount] = useState(90);
   const [gumballArray, setGumballArray] = useState([]);
-  const [walletValue, setWalletValue] = useState(10.00);
-  const [coinBoxValue, setCoinBoxValue] = useState(50.00);
+  const [state, dispatch] = useReducer(reducer, { walletValue: 15.00, coinBoxValue: 40.00});
 
   const handleBuy = useCallback(() => {
     console.log('Buy!');
 
-    if (gumballCount > 0) {
+    if (gumballCount > 0 && state.walletValue > 0.00) {
       setGumballCount(gumballCount-1);
-      setWalletValue(walletValue-0.25);
-      setCoinBoxValue(coinBoxValue+0.25);
-    } else {
+      dispatch({ type: 'WALLET_DECREMENT' });
+      dispatch({ type: 'COIN_BOX_INCREMENT' });
+    } else if (gumballCount === 0) {
       alert('Out of gumballs!');
+    } else {
+      alert('Out of money!');
     }
-  }, [coinBoxValue, gumballCount, walletValue]);
+  }, [gumballCount, state.walletValue]);
 
   const handleEmpty = useCallback(() => {
     console.log('Empty!');
 
-    setWalletValue(walletValue+coinBoxValue);
-    setCoinBoxValue(0);
-  }, [coinBoxValue, walletValue]);
+    dispatch({ type: 'COIN_BOX_EMPTY' });
+  }, []);
 
   const handleRefill = useCallback(() => {
     console.log('Refill!');
@@ -52,6 +69,15 @@ function App() {
 
     setGumballArray(gumballArray);
   }, [gumballCount]);
+
+  const remindGumballCount = (count) => {
+    console.log('Gumball count reminder! ' + count);
+    return count;
+  };
+
+  const memoizedValue = useMemo(() => {
+    return remindGumballCount(gumballCount);
+  }, [gumballCount]);
   
   return (
     <div className='App'>
@@ -61,7 +87,7 @@ function App() {
           <div className='header'>
             <div className='walletContainer'>
               <div className='walletText'>
-                Wallet: ${parseFloat(walletValue).toFixed(2)}
+                Wallet: ${parseFloat(state.walletValue).toFixed(2)}
               </div>
             </div>
           </div>
@@ -101,7 +127,7 @@ function App() {
       <div className='coinBoxModal'>
         <div className='coinBox'>
           <div className='coinBoxText'>
-            Coin Box: ${parseFloat(coinBoxValue).toFixed(2)}
+            Coin Box: ${parseFloat(state.coinBoxValue).toFixed(2)}
           </div>
         </div>
       </div>
