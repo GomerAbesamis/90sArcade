@@ -1,3 +1,7 @@
+# Overview
+
+This is a react based project that is inspired by a gumball machine which was popular back in the 90s
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
